@@ -5,39 +5,25 @@ the notion of successor.
 """
 
 
-<<<<<<< HEAD
 from typing import Any, Callable, Iterable, Set, TypeVar, List
 
 
 FOLLOW = 'follow'
 NOFOLLOW = 'nofollow'
 EXCLUDE = 'exclude'
-=======
-from typing import Any, Callable, Iterable, Set, TypeVar, List, Optional
->>>>>>> Add include argument to dfs, inclusion functions, helpers
 
 
 T = TypeVar('T')
 
 
-<<<<<<< HEAD
 def always_include(node: Any) -> str:
     """Include a node in the search unconditionally."""
     return FOLLOW
-=======
-def always_include(node: Any) -> bool:
-    """Include a node in the search unconditionally."""
-    return True
->>>>>>> Add include argument to dfs, inclusion functions, helpers
 
 
 def dfs(root: T,
         succ: Callable[[T], Iterable[T]],
-<<<<<<< HEAD
         include: Callable[[T], str] = always_include) \
-=======
-        include: Callable[[T], Optional[bool]] = always_include) \
->>>>>>> Add include argument to dfs, inclusion functions, helpers
             -> Iterable[T]:
     """Perform a depth-first search.
 
@@ -46,15 +32,9 @@ def dfs(root: T,
         succ: A function that returns a node's successors.
         include: A function that returns whether to include a node
                  in the search.
-<<<<<<< HEAD
             * Return 'follow' to include the node and follow its edges.
             * Return 'nofollow' to include the node but not follow its edges.
             * Return 'exclude' to not include the node, nor follow its edges.
-=======
-            * Return True to include the node and follow its edges.
-            * Return None to include the node but not follow its edges.
-            * Return False to not include the node, nor follow its edges.
->>>>>>> Add include argument to dfs, inclusion functions, helpers
     """
     seen: Set[T] = set()
     to_visit = [root]
@@ -64,7 +44,6 @@ def dfs(root: T,
             continue
         seen.add(node)
         incl = include(node)
-<<<<<<< HEAD
         if incl == FOLLOW:
             yield node
             to_visit += succ(node)
@@ -76,12 +55,6 @@ def dfs(root: T,
             raise ValueError('include(node) must return one of: '
                              '"follow", "nofollow", "exclude"') \
                 # pragma: no cover
-=======
-        if incl is not False:
-            yield node
-        if incl:
-            to_visit += succ(node)
->>>>>>> Add include argument to dfs, inclusion functions, helpers
 
 
 def toposort(root: T, succ: Callable[[T], Iterable[T]]) -> Iterable[T]:
