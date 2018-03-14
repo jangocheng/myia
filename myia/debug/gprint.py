@@ -9,9 +9,9 @@ from myia.anf_ir import Graph, ANFNode, Apply, Constant
 from myia.anf_ir_utils import \
     is_apply, is_constant, is_parameter, is_constant_graph
 from myia.parser import Location
-from myia.primops import Primitive
 from myia import primops
 from myia.cconv import NestingAnalyzer, ParentProxy
+from myia.label import NodeLabeler, short_relation_symbols, short_labeler
 
 
 gcss_path = f'{os.path.dirname(__file__)}/graph.css'
@@ -505,7 +505,7 @@ class _ANFNode:
 
     def __hrepr__(self, H, hrepr):
         class_name = self.__class__.__name__.lower()
-        label = standard_node_labeler.label(self, True)
+        label = short_labeler.label(self, True)
         return H.span['node', f'node-{class_name}'](label)
 
 
