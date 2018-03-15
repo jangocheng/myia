@@ -150,7 +150,7 @@ class GraphCloner:
         """
         to_clone = list(dfs(root,
                             succ_incoming,
-                            exclude_from_set(self.repl.keys())))
+                            exclude_from_set(self.repl)))
 
         for node in to_clone:
             assert node not in self.repl
