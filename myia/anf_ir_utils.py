@@ -142,6 +142,7 @@ def destroy_disconnected_nodes(root: Graph) -> None:
 
 
 def replace(old_node, new_node):
+    """Replace a node by another, adjusting all uses."""
     uses = set(old_node.uses)
     for node, key in uses:
         node.inputs[key] = new_node
