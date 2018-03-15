@@ -1,4 +1,5 @@
 
+import pytest
 from myia.api import parse
 from myia.graph_utils import dfs
 from myia.anf_ir import Graph, Constant
@@ -113,6 +114,40 @@ def test_clone_total():
     assert idx2['f1'] is idx0['f1']
 
 
+ONE = Constant(1)
+TWO = Constant(2)
+THREE = Constant(3)
+
+
+def _graph_for_inline():
+    target = Graph()
+    target.debug.name = 'target'
+    target.output = THREE
+    return target
+
+
+def _successful_inlining(cl, orig, new_params, target):
+    assert cl[orig] is not target
+    assert cl[orig] is orig
+
+    new_root = cl[orig.output]
+    assert new_root is not orig.output
+
+    orig_nodes = set(dfs(orig.output, succ_incoming))
+    new_nodes = set(dfs(new_root, succ_incoming))
+
+    for p in new_params:
+        assert p in new_nodes
+
+    # Clones of orig's nodes should belong to target
+    assert all(cl[node].graph in {target, None}
+               for node in orig_nodes
+               if node.graph is orig)
+
+    # Clone did not change target
+    assert target.output is THREE
+
+
 def test_clone_inline():
     def f(x, y):
         a = x * x
@@ -122,34 +157,48 @@ def test_clone_inline():
 
     g = parse(f)
 
-    one = Constant(1)
-    two = Constant(2)
-    three = Constant(3)
-
-    target = Graph()
-    target.debug.name = 'target'
-    target.output = three
-
     cl = GraphCloner(clone_constants=False)
-    cl.add_clone(g, target, [one, two], False)
+    target = _graph_for_inline()
+    new_params = [ONE, TWO]
+    cl.add_clone(g, target, new_params, False)
 
-    # target does not actually replace g
-    assert cl[g] is not target
-    assert cl[g] is g
+    _successful_inlining(cl, g, new_params, target)
 
-    new_root = cl[g.output]
-    assert new_root is not g.output
 
-    # Clone did not change target
-    assert target.output is three
+def test_clone_recursive():
+    def f(x, y):
+        a = x * x
+        b = y * y
+        return f(a, b)
 
-    nodes = set(dfs(new_root, succ_incoming))
-    # Parameters should be replaced by these constants
-    assert one in nodes
-    assert two in nodes
+    g = parse(f)
 
-    # Clones of g's nodes should belong to target
-    orig_nodes = set(dfs(g.output, succ_incoming))
-    assert all(cl[node].graph in {target, None}
-               for node in orig_nodes
-               if node.graph is g)
+    cl = GraphCloner(g, clone_constants=True)
+
+    g2 = cl[g]
+
+    d1 = set(dfs(g.return_, succ_deeper))
+    d2 = set(dfs(g2.return_, succ_deeper))
+
+    # Both node sets should be disjoint
+    assert d1 & d2 == set()
+
+    # Now test inlining
+    cl2 = GraphCloner(clone_constants=True)
+    target = _graph_for_inline()
+    new_params = [ONE, TWO]
+    cl2.add_clone(g, target, new_params, False)
+
+    _successful_inlining(cl2, g, new_params, target)
+
+    # The recursive call still refers to the original graph
+    new_nodes = set(dfs(cl2[g.output], succ_deeper))
+    assert any(node.value is g for node in new_nodes)
+
+    # Now test that inlining+total will fail
+    cl2 = GraphCloner(total=True, clone_constants=True)
+    target = _graph_for_inline()
+    new_params = [ONE, TWO]
+    with pytest.raises(Exception):
+        cl2.add_clone(g, target, new_params, False)
+        cl2[g.output]

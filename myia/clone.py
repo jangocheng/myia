@@ -165,8 +165,15 @@ class GraphCloner:
                     new = Parameter(g)
                 elif is_constant(node):
                     def convert(x):
-                        if isinstance(x, Graph) \
-                                and self.graph_mappings.get(x, x) is not True:
+                        if isinstance(x, Graph):
+                            if self.graph_mappings.get(x, x) is True:
+                                if self.total:
+                                    raise Exception(
+                                        '`total` option is not compatible'
+                                        ' with inlining.'
+                                    )
+                                else:
+                                    return x
                             return self._get_graph(x)
                         else:
                             return x
