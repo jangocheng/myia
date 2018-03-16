@@ -52,6 +52,7 @@ class GraphCloner:
                         Union[Graph, ANFNode]] = {None: None}
         self.total = total
         self.clone_constants = clone_constants
+        self.relation = relation
         for graph in graphs:
             self.add_clone(graph)
 
