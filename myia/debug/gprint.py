@@ -11,7 +11,7 @@ from myia.anf_ir_utils import \
 from myia.parser import Location
 from myia import primops
 from myia.cconv import NestingAnalyzer, ParentProxy
-from myia.label import NodeLabeler, short_relation_symbols, short_labeler
+from myia.debug.label import NodeLabeler, short_relation_symbols, short_labeler
 
 
 gcss_path = f'{os.path.dirname(__file__)}/graph.css'
